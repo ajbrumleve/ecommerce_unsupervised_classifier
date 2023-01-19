@@ -185,21 +185,24 @@ def train_model():
 
     logging.info(datetime.now().strftime('%H:%M:%S.%f') + " - " + "Creating session array")
     t_section = timeit.default_timer()
-
-    new_arr = np.zeros((len(session_arrays), num_cats*3+2))
-    session_arrays_keys_lst = list(session_arrays.keys())
-    session_arrays_vals_lst = list(session_arrays.values())
-    session_arrays_keys_arr = np.array(session_arrays_keys_lst)
-    session_arrays_vals_arr = np.array(session_arrays_vals_lst)
-    session_cust_arr = session_arrays_vals_arr[:,0]
-    session_ses_arr = session_arrays_vals_arr[:,1]
-    user_arr = session_arrays_keys_arr[:,0]
-    user_label_dict = dict(zip(cust_ids, labels))
-    user_arr = np.vectorize(user_label_dict.get)(user_arr)
-    for i in range(len(session_arrays)):
-        new_arr[i] = np.concatenate((session_cust_arr[i].reshape(1,-1),session_ses_arr[i].reshape(1,-1),user_arr[i].reshape(1,-1)),axis=1)
-    logging.info(datetime.now().strftime(
-        '%H:%M:%S.%f') + " - " + f"Session array created in {timeit.default_timer() - t_section} seconds")
+    try:
+        new_arr = np.zeros((len(session_arrays), num_cats*3+2))
+        session_arrays_keys_lst = list(session_arrays.keys())
+        session_arrays_vals_lst = list(session_arrays.values())
+        session_arrays_keys_arr = np.array(session_arrays_keys_lst)
+        session_arrays_vals_arr = np.array(session_arrays_vals_lst)
+        session_cust_arr = session_arrays_vals_arr[:,0]
+        session_ses_arr = session_arrays_vals_arr[:,1]
+        user_arr = session_arrays_keys_arr[:,0]
+        user_label_dict = dict(zip(cust_ids, labels))
+        user_arr = np.vectorize(user_label_dict.get)(user_arr)
+        for i in range(len(session_arrays)):
+            new_arr[i] = np.concatenate((session_cust_arr[i].reshape(1,-1),session_ses_arr[i].reshape(1,-1),user_arr[i].reshape(1,-1)),axis=1)
+        logging.info(datetime.now().strftime(
+            '%H:%M:%S.%f') + " - " + f"Session array created in {timeit.default_timer() - t_section} seconds")
+    except MemoryError as e:
+        logging.error(datetime.now().strftime(
+            '%H:%M:%S.%f') + " - " + str(e))
 
     logging.info(datetime.now().strftime('%H:%M:%S.%f') + " - " + "Testing support vector machine model")
     t_section = timeit.default_timer()
@@ -252,10 +255,12 @@ def train_model():
     models.cat_map = cat_map
     try:
         pickle.dump(models, open('models/model_info.pkl', 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
-        logging.info("The size of the models object is {} bytes".format(sys.getsizeof(pickle.dumps(models))))
+        logging.info(
+            datetime.now().strftime('%H:%M:%S.%f') + " - " + "The size of the models object is {} bytes".format(
+                sys.getsizeof(pickle.dumps(models))))
 
     except FileNotFoundError:
-        logging.error("No models directory")
+        logging.error(datetime.now().strftime('%H:%M:%S.%f') + " - " + "No models directory")
         return
 
     return models
