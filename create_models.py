@@ -10,7 +10,7 @@ from kneed import KneeLocator
 from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 
 
 class Models:
@@ -28,7 +28,7 @@ def train_model():
     log_info.setLevel(logging.INFO)
     logging.getLogger('').addHandler(log_info)
 
-    num_lines = 1000000
+    num_lines = 5000000
     knee = None
     target_i = 30
 
@@ -198,14 +198,14 @@ def train_model():
     user_arr = np.vectorize(user_label_dict.get)(user_arr)
     for i in range(len(session_arrays)):
         new_arr[i] = np.concatenate((session_cust_arr[i].reshape(1,-1),session_ses_arr[i].reshape(1,-1),user_arr[i].reshape(1,-1)),axis=1)
-
     logging.info(datetime.now().strftime(
         '%H:%M:%S.%f') + " - " + f"Session array created in {timeit.default_timer() - t_section} seconds")
 
     logging.info(datetime.now().strftime('%H:%M:%S.%f') + " - " + "Testing support vector machine model")
     t_section = timeit.default_timer()
     xTrain, xTest, yTrain, yTest = train_test_split(new_arr[:, :-1], new_arr[:, -1])
-    svm_model_linear = SVC(kernel='linear', C=1, probability=True).fit(xTrain, yTrain)
+    # svm_model_linear = SVC(kernel='linear', C=1, probability=True).fit(xTrain, yTrain)
+    svm_model_linear = LinearSVC(dual=False, class_weight='balanced', verbose=2).fit(xTrain, yTrain)
     svm_predictions = svm_model_linear.predict(xTest)
     # model accuracy for xTest
     accuracy_svm = svm_model_linear.score(xTest, yTest)
@@ -252,7 +252,11 @@ def train_model():
     models.cat_map = cat_map
     try:
         pickle.dump(models, open('models/model_info.pkl', 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+        logging.info("The size of the models object is {} bytes".format(sys.getsizeof(pickle.dumps(models))))
+
     except FileNotFoundError:
         logging.error("No models directory")
         return
+
     return models
+
