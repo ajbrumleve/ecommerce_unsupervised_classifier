@@ -76,11 +76,12 @@
 ## About The Project
 
 
-This was my first attempt to really try to build an unsupervised model to try to solve a real world problem. This uses a [Kaggle dataset](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store?select=2019-Oct.csv) of customer interactions with a multi category online store. I wanted to see if I could create groupings of customers and then be able to place a customer in a grouping based on a shopping session. Applications of this would be to recommend tailored products to each customer.
+This was my first attempt to try to build an unsupervised model to try to solve a real world problem. This uses a [Kaggle dataset](https://www.kaggle.com/datasets/mkechinov/ecommerce-behavior-data-from-multi-category-store?select=2019-Oct.csv) of customer interactions with a multi category online store. I wanted to see if I could create groupings of customers and then be able to place a customer in a grouping based on a shopping session. Applications of this would be to recommend tailored products to each customer.
 
 When a new model is trained, a vector is created to represent the categories viewed and purchased by each user. The code automatically uses the elbow method to identify how many groups to use for the KMeans model. A model is then created with that number of groups. Next a separate model is trained which looks at each session and which categories are viewed or purchased as well as the customer vector at the time of the session. Using the customer grouping from the original model, a Support Vector Machine model is trained to put sessions into one of the customer groupings. 
 
 The model is saved in the models directory so it can be accessed in the future without needing to retrain. 
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -131,7 +132,7 @@ pip install numpy
     ```bash
     pipenv install
     ```
-4. Run `main.py` to try to try prebuilt model. Or run `march_madness.py` to train new model. This should be fairly quick with the sample data. With the full data from Kaggle, this can take a while. 
+4. Run `main.py` to try to try prebuilt model. This should be fairly quick with the sample data. With the full data from Kaggle, this can take a while. 
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -142,6 +143,8 @@ pip install numpy
 ## Usage
 
 With a trained model, running main.py will ask you for the customer_id of a customer session. Then you will list the categories the user views or purchases. If the session ends enter the word 'Finally'. The program will then tell you which customer category the customer is in.
+
+Right now the model is only training on the first 5,000,000 lines of the dataset due to RAM limitations. Feel free to adjust this with the num_lines variable.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
