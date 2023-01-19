@@ -1,6 +1,6 @@
 # This is a sample Python script.
 import pickle
-
+import logging
 import numpy as np
 
 import create_models
@@ -10,18 +10,19 @@ import create_models
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def add_session(customer_id, category_list: list):
-    cust_array = cust_arrays[customer_id]
-    arr = np.append(cust_array,np.zeros(int((len(cust_arrays[list(cust_arrays.keys())[0]])-1)/2)))
+def add_session(cust_id, category_list: list):
+    cust_array = cust_arrays[cust_id]
+    arr = np.append(cust_array, np.zeros(int((len(cust_arrays[list(cust_arrays.keys())[0]]) - 1) / 2)))
     for cat in category_list:
         cat_id = cat_map[cat]
         adj_cat_id = len(cust_arrays[list(cust_arrays.keys())[0]]) + cat_id
         arr[adj_cat_id] += 1
-    prediction = int(models.svm_model.predict(arr.reshape(1,-1))[0])
-    prob = models.svm_model.predict_proba(arr.reshape(1,-1))[0][prediction]
-    print(f"The customer class of this customer is {prediction}. This is {prob*100}% likely.")
-    return models.svm_model.predict(arr.reshape(1,-1))[0]
-# Press the green button in the gutter to run the script.
+    prediction = int(models.svm_model.predict(arr.reshape(1, -1))[0])
+    prob = models.svm_model.predict_proba(arr.reshape(1, -1))[0][prediction]
+    print(f"The customer class of this customer is {prediction}. This is {prob * 100}% likely.")
+    return models.svm_model.predict(arr.reshape(1, -1))[0]
+
+
 if __name__ == '__main__':
     response = False
     while not response:
@@ -30,12 +31,14 @@ if __name__ == '__main__':
             models = create_models.train_model()
             response = True
         elif train_bool == "N":
-            model_filename = 'models/kmeans.mdl'
-            session_model_filename = 'models/session_svm.mdl'
-            with open ('models/model_info.pkl', "rb") as f:
-                models = pickle.load(f)
-                f.close()
-            response = True
+            try:
+                with open('models/model_info.pkl', "rb") as f:
+                    models = pickle.load(f)
+                    f.close()
+                response = True
+            except FileNotFoundError:
+                logging.error("There is no pretrained model. Please run again and build new model.")
+
         else:
             print("Please enter either Y or N")
     km_model = models.km_model
@@ -50,8 +53,6 @@ if __name__ == '__main__':
             break
         else:
             cat_list.append(cat_entry)
-    print(add_session(customer_id,cat_list))
-
+    print(add_session(customer_id, cat_list))
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
-

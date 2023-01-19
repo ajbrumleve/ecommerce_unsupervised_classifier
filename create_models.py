@@ -28,7 +28,7 @@ def train_model():
     log_info.setLevel(logging.INFO)
     logging.getLogger('').addHandler(log_info)
 
-    num_lines = 2000000
+    num_lines = 1000000
     knee = None
     target_i = 30
 
@@ -185,13 +185,19 @@ def train_model():
 
     logging.info(datetime.now().strftime('%H:%M:%S.%f') + " - " + "Creating session array")
     t_section = timeit.default_timer()
-    new_arr = np.zeros((len(session_arrays), num_cats * 3 + 2))
-    i = 0
-    for user_ses_pair in session_arrays.keys():
-        arr = np.append(np.append(session_arrays[user_ses_pair][0], session_arrays[user_ses_pair][1]),
-                        labels[np.where(cust_ids == user_ses_pair[0])[0]][0])
-        new_arr[i] = arr
-        i += 1
+
+    new_arr = np.zeros((len(session_arrays), num_cats*3+2))
+    session_arrays_keys_lst = list(session_arrays.keys())
+    session_arrays_vals_lst = list(session_arrays.values())
+    session_arrays_keys_arr = np.array(session_arrays_keys_lst)
+    session_arrays_vals_arr = np.array(session_arrays_vals_lst)
+    session_cust_arr = session_arrays_vals_arr[:,0]
+    session_ses_arr = session_arrays_vals_arr[:,1]
+    user_arr = session_arrays_keys_arr[:,0]
+    user_label_dict = dict(zip(cust_ids, labels))
+    user_arr = np.vectorize(user_label_dict.get)(user_arr)
+    for i in range(len(session_arrays)):
+        new_arr[i] = np.concatenate((session_cust_arr[i].reshape(1,-1),session_ses_arr[i].reshape(1,-1),user_arr[i].reshape(1,-1)),axis=1)
 
     logging.info(datetime.now().strftime(
         '%H:%M:%S.%f') + " - " + f"Session array created in {timeit.default_timer() - t_section} seconds")
@@ -225,9 +231,16 @@ def train_model():
     # save the model to disk
     model_filename = 'models/kmeans.mdl'
     session_model_filename = 'models/session_svm.mdl'
-    pickle.dump(model, open(model_filename, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
-    pickle.dump(svm_model_linear, open(session_model_filename, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
-
+    try:
+        pickle.dump(model, open(model_filename, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+    except FileNotFoundError:
+        logging.error("No models directory")
+        return
+    try:
+        pickle.dump(svm_model_linear, open(session_model_filename, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+    except FileNotFoundError:
+        logging.error("No models directory")
+        return
     logging.info(datetime.now().strftime('%H:%M:%S.%f') + " - " + f"Models saved")
 
     logging.info(
@@ -237,6 +250,9 @@ def train_model():
     models.svm_model = svm_model_linear
     models.cust_arrays = cust_arrays
     models.cat_map = cat_map
-    pickle.dump(models, open('models/model_info.pkl', 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
-
+    try:
+        pickle.dump(models, open('models/model_info.pkl', 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+    except FileNotFoundError:
+        logging.error("No models directory")
+        return
     return models
