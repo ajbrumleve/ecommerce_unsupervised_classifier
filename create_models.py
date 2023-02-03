@@ -11,6 +11,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC, LinearSVC
+from typing import List, Tuple, Dict
 
 
 class Models:
@@ -21,7 +22,12 @@ class Models:
         self.cust_arrays = {}
 
 
-def train_model():
+def train_model() -> Models:
+    """Begins pipeline to train model
+
+    Returns:
+        Models
+    """
     logger = logging.getLogger("test")
     logging.basicConfig(level=logging.DEBUG)
     log_info = logging.FileHandler('test-log.log')
@@ -32,7 +38,15 @@ def train_model():
     knee = None
     target_i = 30
 
-    def get_cat_num(x):
+    def get_cat_num(x: str) -> int:
+        """
+        looks up integer index of a category string
+
+        Args:
+            x (str): Category label
+        Returns:
+            int
+        """
         return cat_map[x]
 
     t_file = timeit.default_timer()
